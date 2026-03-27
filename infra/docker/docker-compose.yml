@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+
+  orchestrator:
+    build:
+      context: ../../
+      dockerfile: services/orchestrator/Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../../.env
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ../../memory/logs:/tmp/leoclaw/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  lume-client:
+    build:
+      context: ../../
+      dockerfile: services/lume-client/Dockerfile
+    env_file:
+      - ../../.env
+    environment:
+      - ORCHESTRATOR_URL=http://orchestrator:8000
+      - MOCK_ACTIONS=true
+      - PYTHONPATH=/app
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ../../
+      dockerfile: services/worker/Dockerfile
+    env_file:
+      - ../../.env
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - orchestrator
+    restart: unless-stopped
+
+  # Uncomment in Step 10 to add persistent storage
+  # postgres:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_USER: leoclaw
+  #     POSTGRES_PASSWORD: leoclaw
+  #     POSTGRES_DB: leoclaw
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+
+# volumes:
+#   pgdata:

@@ -1,0 +1,7 @@
+httpx>=0.27.0
+pydantic>=2.7.0
+python-dotenv>=1.0.0
+
+# Step 5+: Real browser actions (uncomment when running inside Lume)
+# pyautogui>=0.9.54
+# playwright>=1.44.0
